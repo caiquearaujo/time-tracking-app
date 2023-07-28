@@ -1,0 +1,708 @@
+openapi: 3.1.0
+x-stoplight:
+  id: nhzgvhyefpi8r
+info:
+  title: API Interface for Users
+  version: '1.0'
+  summary: 'This API allows a user, through his credentials, to manipulate his data.'
+  description: |-
+    A user is capable to:
+
+    - See his profile data;
+    - Track an event by date and type;
+    - See his tracking history;
+    - See his tracking stats based on a view.
+
+    This API is private and must be proxied to an application which handle the user credential an get the right data by sending the compatible user id.
+  contact:
+    name: Caique Araujo
+    url: 'https://studio.piggly.com.br'
+    email: caique@piggly.com.br
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: 'http://localhost:5000'
+    description: localhost
+paths:
+  /profile:
+    get:
+      summary: Get profile data
+      tags:
+        - profile
+      responses:
+        '200':
+          $ref: '#/components/responses/user.profile'
+      operationId: get-profile
+      description: This endpoint must be used to get all user data.
+  '/track/{id}':
+    parameters:
+      - $ref: '#/components/parameters/track.id.path'
+    get:
+      summary: Get an event data by its ID
+      tags:
+        - tracking
+      responses:
+        '200':
+          $ref: '#/components/responses/track.get'
+        '404':
+          $ref: '#/components/responses/response.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      operationId: get-track-id
+      description: This endpoint must be used to get all event data by its ID.
+      parameters:
+        - $ref: '#/components/parameters/timezone.query'
+    patch:
+      summary: Update an event by its ID
+      operationId: patch-track-id
+      responses:
+        '200':
+          $ref: '#/components/responses/track.changes'
+        '404':
+          $ref: '#/components/responses/track.changes.error'
+        '422':
+          $ref: '#/components/responses/track.changes.error'
+        '423':
+          $ref: '#/components/responses/track.changes.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      tags:
+        - tracking
+      description: 'This endpoint must be used to update an event data. While using it, application will evaluate all rules to allow operation and return its status.'
+    delete:
+      summary: Delete an event by its ID
+      operationId: delete-track-id
+      responses:
+        '200':
+          $ref: '#/components/responses/track.changes'
+        '404':
+          $ref: '#/components/responses/track.changes.error'
+        '422':
+          $ref: '#/components/responses/track.changes.error'
+        '423':
+          $ref: '#/components/responses/track.changes.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      tags:
+        - tracking
+      description: 'This endpoint must be used to delete an event data. While using it, application will evaluate all rules to allow operation and return its status.'
+  '/track/as/{type}':
+    post:
+      summary: Track an event
+      operationId: post-track
+      responses:
+        '201':
+          $ref: '#/components/responses/track.changes'
+        '422':
+          $ref: '#/components/responses/track.changes.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      tags:
+        - tracking
+      description: 'This endpoint must be used to track a new event by a type. While using it, application will evaluate all rules to allow operation and return its status.'
+      requestBody:
+        $ref: '#/components/requestBodies/track.create'
+    parameters:
+      - $ref: '#/components/parameters/track.type.path'
+  /explore/history:
+    get:
+      summary: Explore a history of tracked events
+      tags:
+        - tracking
+      responses:
+        '200':
+          $ref: '#/components/responses/track.history'
+        '404':
+          $ref: '#/components/responses/response.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      operationId: get-explore-history
+      parameters:
+        - $ref: '#/components/parameters/track.date_range.query'
+        - $ref: '#/components/parameters/size.query'
+        - $ref: '#/components/parameters/page.query'
+        - $ref: '#/components/parameters/timezone.query'
+      description: 'This endpoint must be used to get a history of tracked events on the date range specified. Each data returned will be a timeline tracked in that day, containing all 4 events that form a timeline.'
+  /explore/stats:
+    get:
+      summary: Explore statistics for tracked events
+      tags:
+        - tracking
+      responses:
+        '200':
+          $ref: '#/components/responses/track.statistics'
+        '404':
+          $ref: '#/components/responses/response.error'
+        '429':
+          $ref: '#/components/responses/response.error'
+        '500':
+          $ref: '#/components/responses/response.error'
+      operationId: get-explore-stats
+      parameters:
+        - $ref: '#/components/parameters/track.date_range.query'
+      description: This endpoint must be used to get an statistic of tracked events on the date range specified.
+components:
+  schemas:
+    track.event.model:
+      title: Event Tracked
+      x-stoplight:
+        id: va3m1f46vcubd
+      type: object
+      description: Event details.
+      examples:
+        - id: 1
+          meta:
+            minute: 0
+            hour: 11
+            day: 1
+            month: 7
+            year: 2023
+          operations:
+            deletable: false
+            updatable: false
+          type: arrive
+          tracked_at: '2023-07-01T11:00:00Z'
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          description: ID of event.
+        meta:
+          type: object
+          description: Date separated into components.
+          required:
+            - minute
+            - hour
+            - day
+            - month
+            - year
+          properties:
+            minute:
+              type: integer
+              format: int32
+              description: Minute.
+              minimum: 0
+              maximum: 59
+              example: 0
+            hour:
+              type: integer
+              format: int32
+              description: Hour.
+              minimum: 0
+              maximum: 59
+              example: 11
+            day:
+              type: integer
+              format: int32
+              description: Day.
+              minimum: 1
+              maximum: 31
+              example: 1
+            month:
+              type: integer
+              format: int32
+              description: Month.
+              minimum: 1
+              maximum: 12
+              example: 7
+            year:
+              type: integer
+              format: int32
+              description: Year.
+              minimum: 1970
+              maximum: 9999
+              example: 2023
+        operations:
+          type: object
+          description: Available operations for event.
+          required:
+            - deletable
+            - updatable
+          properties:
+            deletable:
+              type: boolean
+              description: Can be deleted.
+              default: false
+            updatable:
+              type: boolean
+              description: Can be updated.
+              default: false
+        type:
+          type: string
+          description: Type of event.
+          enum:
+            - arrive
+            - break
+            - return
+            - exit
+          pattern: arrive
+        tracked_at:
+          type: string
+          description: 'Follows the `RFC 3339` format, stored in UTC timezone.'
+          format: date-time
+          example: '2023-07-01T11:00:00Z'
+      required:
+        - id
+        - meta
+        - operations
+        - type
+        - tracked_at
+    error.model:
+      title: Error Data
+      x-stoplight:
+        id: c6fhb2jewybzj
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 'Internal error code, see error code table.'
+          example: 40
+        name:
+          type: string
+          description: Declarative name of the error.
+          example: RequestNotFound
+        message:
+          type: string
+          description: Message produced by the error.
+          example: The request cannot be found.
+        status:
+          type: integer
+          description: HTTP code for error.
+          example: 404
+        body:
+          type:
+            - object
+            - 'null'
+          description: 'Error body, if available.'
+        hint:
+          type:
+            - string
+            - 'null'
+          description: 'Hint to help solve it, if available.'
+      required:
+        - code
+        - name
+        - message
+        - status
+      examples:
+        - code: 100
+          name: RequestNotFoundError
+          message: The request cannot be found.
+          status: 404
+      description: All required data to interpret an error.
+    pagination.model:
+      title: Data Pagination
+      x-stoplight:
+        id: 6goy33y779szi
+      type: object
+      description: Metadata for pagination.
+      examples:
+        - current_page: 1
+          current_size: 15
+          total_pages: 10
+          total_size: 150
+          next_url: 'http://localhost:5000/?page=2&size=15'
+          prev_url: null
+      properties:
+        current_page:
+          type: integer
+          description: Current page.
+          example: 1
+        current_size:
+          type: integer
+          description: Size of data.
+          example: 15
+        total_pages:
+          type: integer
+          description: Total page.
+          example: 10
+        total_size:
+          type: integer
+          description: Total of data.
+          example: 150
+        next_url:
+          type:
+            - string
+            - 'null'
+          description: 'URL to next page, if available.'
+          format: uri
+          example: 'http://localhost:5000/?page=2&size=15'
+        prev_url:
+          type:
+            - string
+            - 'null'
+          description: 'URL to previous page, if available.'
+          format: uri
+      required:
+        - current_page
+        - current_size
+        - total_pages
+        - total_size
+    track.day.model:
+      title: Events at Day (Timeline)
+      x-stoplight:
+        id: evrwq0kig57g6
+      type: object
+      description: All events related to a day.
+      examples:
+        - date: '2023-07-01'
+          arrive: '08:15:00Z'
+          break: '12:15:00Z'
+          return: '13:15:00Z'
+          exit: '17:15:00Z'
+          journey:
+            working: PT8H0S
+            breaking: PT1H0S
+          closed: true
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2023-07-01'
+          description: Date when timeline happened.
+        arrive:
+          type: string
+          format: time
+          example: '08:15:00Z'
+          description: Time when arrive event happened.
+        break:
+          type:
+            - string
+            - 'null'
+          format: time
+          example: '12:15:00Z'
+          description: Time when break event happened.
+        return:
+          type:
+            - string
+            - 'null'
+          format: time
+          example: '13:15:00Z'
+          description: Time when return event happened.
+        exit:
+          type:
+            - string
+            - 'null'
+          format: time
+          example: '17:15:00Z'
+          description: Time when return exit happened.
+        journey:
+          type: object
+          description: Calculated journey.
+          properties:
+            working:
+              type:
+                - string
+                - 'null'
+              description: Time working.
+              format: duration
+              example: PT8H0S
+            breaking:
+              type:
+                - string
+                - 'null'
+              description: Time breaking.
+              format: duration
+              example: PT1H0S
+        closed:
+          type: boolean
+          description: Flag to show if timeline is closed or not.
+      required:
+        - date
+        - arrive
+        - journey
+        - closed
+    track.statistics.model:
+      title: Statistics
+      x-stoplight:
+        id: zrn9af0b2r22y
+      type: object
+      description: Statistics details.
+      examples:
+        - journey:
+            sum:
+              working: PT8H0S
+              breaking: PT1H0S
+            avg:
+              working: PT8H0S
+              breaking: PT1H0S
+      properties:
+        journey:
+          type: object
+          description: Calculated journey.
+          properties:
+            sum:
+              type: object
+              description: Sum of all journey.
+              properties:
+                working:
+                  type:
+                    - string
+                    - 'null'
+                  format: duration
+                  description: Time working.
+                  example: PT8H0S
+                breaking:
+                  type:
+                    - string
+                    - 'null'
+                  format: duration
+                  description: Time breaking.
+                  example: PT1H0S
+            avg:
+              type: object
+              description: Average of all journey.
+              properties:
+                working:
+                  type:
+                    - string
+                    - 'null'
+                  format: duration
+                  description: Time working.
+                  example: PT8H0S
+                breaking:
+                  type:
+                    - string
+                    - 'null'
+                  format: duration
+                  description: Time breaking.
+                  example: PT1H0S
+    user.profile.model:
+      title: User Profile
+      x-stoplight:
+        id: 36a0187ebb308
+      type: object
+      description: Available user data.
+      properties:
+        username:
+          type: string
+          description: Username.
+        email:
+          type: string
+          format: email
+          description: E-mail.
+      examples:
+        - username: '@userexample'
+          email: user@example.com
+  securitySchemes:
+    X-User-Id:
+      name: X-User-Id
+      type: apiKey
+      in: header
+      description: The public identifier related to the user.
+  parameters:
+    track.type.path:
+      name: type
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+          - arrive
+          - break
+          - return
+          - exit
+        example: arrive
+      description: Type of an event.
+    track.id.path:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Event id.
+    track.date_range.query:
+      name: date_range
+      in: query
+      required: true
+      schema:
+        type: string
+        example: '2023-07-01,2023-07-31'
+      description: Date when events were tracked. Following specified timezone.
+    size.query:
+      name: size
+      in: query
+      schema:
+        type: integer
+        default: 15
+        minimum: 10
+        maximum: 50
+      description: Size of data to return.
+    page.query:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      description: Current page.
+    timezone.query:
+      name: timezone
+      in: query
+      required: false
+      schema:
+        type: string
+        example: UTC
+        default: UTC
+      description: Apply timezone to any returning date.
+      style: form
+  responses:
+    track.get:
+      description: Return all details about event.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/track.event.model'
+          examples:
+            Event Data:
+              value:
+                id: 1
+                meta:
+                  minute: 0
+                  hour: 11
+                  day: 1
+                  month: 7
+                  year: 2023
+                operations:
+                  deletable: false
+                  updatable: false
+                type: arrive
+                tracked_at: '2023-07-01T11:00:00Z'
+    track.changes:
+      description: Return the operation status and the event details.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: boolean
+                description: Operation status meaning if it was successful or not.
+              data:
+                $ref: '#/components/schemas/track.event.model'
+                description: Event related to operation.
+            required:
+              - status
+              - data
+          examples:
+            Success:
+              value:
+                status: true
+                data:
+                  id: 1
+                  meta:
+                    minute: 0
+                    hour: 11
+                    day: 1
+                    month: 7
+                    year: 2023
+                  operations:
+                    deletable: false
+                    updatable: false
+                  type: arrive
+                  tracked_at: '2023-07-01T11:00:00Z'
+    track.changes.error:
+      description: Return the operation status and the error details.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: boolean
+                description: Operation status meaning if it was successful or not.
+              data:
+                $ref: '#/components/schemas/error.model'
+                description: Related error details.
+            required:
+              - status
+              - data
+    response.error:
+      description: Return the error details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error.model'
+    track.history:
+      description: All timelines related to the date range.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/track.day.model'
+              metadata:
+                $ref: '#/components/schemas/pagination.model'
+            required:
+              - data
+              - metadata
+          examples:
+            Events Returned:
+              value:
+                data:
+                  - date: '2023-07-01'
+                    arrive: '08:15:00Z'
+                    break: '12:15:00Z'
+                    return: '13:15:00Z'
+                    exit: '17:15:00Z'
+                    journey:
+                      working: PT8H0S
+                      breaking: PT1H0S
+                    closed: true
+                metadata:
+                  current_page: 1
+                  current_size: 15
+                  total_pages: 10
+                  total_size: 150
+                  next_url: 'http://localhost:5000/?page=2&size=15'
+                  prev_url: null
+    track.statistics:
+      description: Statistics of the date range specified.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/track.statistics.model'
+    user.profile:
+      description: Data related to user.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user.profile.model'
+  requestBodies:
+    track.create:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tracked_at:
+                type: string
+                description: 'Follows the `RFC 3339` format, can be in any timezone.'
+                format: date-time
+                example: '2023-07-01T11:00:00Z'
+          examples:
+            Event Body:
+              value:
+                tracked_at: '2023-07-01T11:00:00Z'
+      description: All data required to track an event.
+tags:
+  - name: profile
+  - name: tracking
+security:
+  - X-User-Id: []
