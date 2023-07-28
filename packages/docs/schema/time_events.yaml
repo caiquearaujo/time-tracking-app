@@ -1,0 +1,85 @@
+title: Time Events
+type: object
+description: |-
+  Time events are the main data of the system. They are used to track the time of users to current event.
+
+  Concerns:
+
+  - Smart calculation for time between dates;
+  - Capability to track if an event can be deleted or updated.
+
+  Requirements:
+
+  - When inserted time tracked must be separated by day, month, year, hour and minute;
+  - The deletable and updatable fields are used to control if an event can be deleted or updated;
+  - The type of event has four possible values: `arrive`, `break`, `return` and `exit`;
+  - Each type has it own rules.
+properties:
+  _id:
+    type: integer
+    format: int64
+    description: Primary key as integer.
+  _user_id:
+    type: integer
+    format: int64
+    description: Related to user ID.
+  _day:
+    type: integer
+    format: int64
+    description: Day of event.
+  _month:
+    type: integer
+    format: int64
+    description: Month of event.
+  _year:
+    type: integer
+    format: int64
+    description: Year of event.
+  _hour:
+    type: integer
+    format: int64
+    description: Hour of event.
+  _minute:
+    type: integer
+    format: int64
+    description: Minute of event.
+  _type:
+    type: string
+    description: Type of event.
+    enum:
+      - arrive
+      - break
+      - return
+      - exit
+  _deletable:
+    type: boolean
+    description: If event can be deleted.
+  _updatable:
+    type: boolean
+    description: If event can be updated.
+  _tracked_time:
+    type: string
+    format: date-time
+    description: Time tracked to event. Follows the `RFC 3339` format, stored in UTC timezone.
+  _created_at:
+    type: string
+    format: date-time
+    description: Related to record. Follows the `RFC 3339` format, stored in UTC timezone.
+  _updated_at:
+    type: string
+    format: date-time
+    description: Related to record. Follows the `RFC 3339` format, stored in UTC timezone.
+required:
+  - _id
+  - _user_id
+  - _day
+  - _month
+  - _year
+  - _hour
+  - _minute
+  - _type
+  - _deletable
+  - _updatable
+  - _tracked_time
+  - _created_at
+  - _updated_at
