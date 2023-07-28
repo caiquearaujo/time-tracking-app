@@ -25,7 +25,28 @@
 		"test:once": "cross-env NODE_ENV=test jest --detectOpenHandles --coverage",
 		"test:debug": "cross-env NODE_ENV=test node --inspect ./node_modules/.bin/jest --runInBand"
 	},
+	"dependencies": {
+		"@fastify/compress": "^6.2.1",
+		"@fastify/cors": "^8.2.1",
+		"@fastify/helmet": "^10.1.0",
+		"@fastify/rate-limit": "^8.0.0",
+		"@piggly/ddd-toolkit": "^1.1.5",
+		"@piggly/event-bus": "^1.0.1",
+		"@piggly/fastify-chassis": "^1.0.1",
+		"@piggly/mysql": "^1.1.2",
+		"bcrypt": "^5.1.0",
+		"cross-env": "^7.0.3",
+		"dotenv": "^16.0.3",
+		"fastify": "^4.15.0",
+		"joi": "^17.9.2",
+		"joi-translation-pt-br": "^0.0.6",
+		"moment-timezone": "^0.5.43",
+		"mysql2": "^3.5.0",
+		"pino": "^8.14.1",
+		"pino-pretty": "^10.0.0"
+	},
 	"devDependencies": {
+		"@types/bcrypt": "^5.0.0",
 		"@types/jest": "^29.5.3",
 		"@types/node": "^20.4.5",
 		"@typescript-eslint/eslint-plugin": "^6.2.0",
